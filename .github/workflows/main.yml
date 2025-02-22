@@ -1,0 +1,71 @@
+name: Distribution Builds
+
+on:
+  push:
+  # Manual dispatch for testing
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir out
+          mkdir tmp_build
+          cargo build --target x86_64-pc-windows-msvc --release
+          copy target/x86_64-pc-windows-msvc/release/libeditpe_java64.dll tmp_build/libeditpe_java64.dll
+          Compress-Archive -Path tmp_build/libeditpe_java64.dll -Destination out/libeditpe_java64.dll.zip
+      - name: Build MacOS (setup)
+        if: matrix.os == 'macos-latest'
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-darwin
+      - name: Build MacOS (x86_64)
+        if: matrix.os == 'macos-latest'
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '10.12'
+        run: |
+          cargo build --target x86_64-apple-darwin --release
+      - name: Build MacOS (aarch64)
+        if: matrix.os == 'macos-latest'
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '11.0'
+        run: |
+          cargo build --target aarch64-apple-darwin --release
+      - name: Build MacOS (release)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p out
+          mv target/x86_64-apple-darwin/release/roast ./libeditpe_java64.dylib
+          mv target/aarch64-apple-darwin/release/roast ./libeditpe_javaarm64.dylib
+          zip out/libeditpe_java64.dylib.zip ./libeditpe_java64.dylib
+          zip out/libeditpe_javaarm64.dylib.zip ./libeditpe_javaarm64.dylib
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt install -y gcc-aarch64-linux-gnu
+          rustup target add aarch64-unknown-linux-gnu
+          cargo build --target i686-unknown-linux-gnu --release
+          cargo build --target aarch64-unknown-linux-gnu --release
+          mkdir -p out
+          mv target/i686-unknown-linux-gnu/release/libeditpe_java.so ./libeditpe_java64.so
+          mv target/aarch64-unknown-linux-gnu/release/libeditpe_java.so ./libeditpe_javaarm64.so
+          zip out/libeditpe_java64.so.zip ./libeditpe_java64.so
+          zip out/libeditpe_javaarm64.so.zip ./libeditpe_javaarm64.so
+      - name: Artifact upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: outputs-${{ matrix.os }}
+          path: out
+          retention-days: 30
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: out/*
