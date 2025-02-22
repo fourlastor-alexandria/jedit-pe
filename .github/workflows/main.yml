@@ -19,8 +19,8 @@ jobs:
           mkdir out
           mkdir tmp_build
           cargo build --target x86_64-pc-windows-msvc --release
-          copy target/x86_64-pc-windows-msvc/release/editpe_java.dll tmp_build/libeditpe_java64.dll
-          Compress-Archive -Path tmp_build/libeditpe_java64.dll -Destination out/libeditpe_java64.dll.zip
+          copy target/x86_64-pc-windows-msvc/release/editpe_java.dll tmp_build/editpe_java64.dll
+          Compress-Archive -Path tmp_build/editpe_java64.dll -Destination out/editpe_java64.dll.zip
       - name: Build MacOS (setup)
         if: matrix.os == 'macos-latest'
         run: |
