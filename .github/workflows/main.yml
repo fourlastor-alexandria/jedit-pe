@@ -42,8 +42,8 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           mkdir -p out
-          mv target/x86_64-apple-darwin/release/libeditpe_java ./libeditpe_java64.dylib
-          mv target/aarch64-apple-darwin/release/libeditpe_java ./libeditpe_javaarm64.dylib
+          mv target/x86_64-apple-darwin/release/libeditpe_java.dylib ./libeditpe_java64.dylib
+          mv target/aarch64-apple-darwin/release/libeditpe_java.dylib ./libeditpe_javaarm64.dylib
           zip out/libeditpe_java64.dylib.zip ./libeditpe_java64.dylib
           zip out/libeditpe_javaarm64.dylib.zip ./libeditpe_javaarm64.dylib
       - name: Build Linux
