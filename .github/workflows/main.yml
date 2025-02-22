@@ -50,12 +50,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt install -y gcc-aarch64-linux-gnu gcc-x86-64-linux-gnu
-          rustup target add i686-unknown-linux-gnu
+          rustup target add x86_64-unknown-linux-gnu
           rustup target add aarch64-unknown-linux-gnu
-          cargo build --target i686-unknown-linux-gnu --release
+          cargo build --target x86_64-unknown-linux-gnu --release
           cargo build --target aarch64-unknown-linux-gnu --release
           mkdir -p out
-          mv target/i686-unknown-linux-gnu/release/libeditpe_java.so ./libeditpe_java64.so
+          mv target/x86_64-unknown-linux-gnu/release/libeditpe_java.so ./libeditpe_java64.so
           mv target/aarch64-unknown-linux-gnu/release/libeditpe_java.so ./libeditpe_javaarm64.so
           zip out/libeditpe_java64.so.zip ./libeditpe_java64.so
           zip out/libeditpe_javaarm64.so.zip ./libeditpe_javaarm64.so
