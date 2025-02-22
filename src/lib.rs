@@ -19,6 +19,7 @@ pub extern "system" fn Java_io_github_fourlastor_construo_editpe_EditPE_replaceI
 
     let mut image = Image::parse_file(exe_path.clone()).expect("Could not parse exe file");
     let mut resources = image.resource_directory().cloned().unwrap_or_default();
+    resources.remove_main_icon().expect("Failed to remove main icon");
     resources.set_main_icon_file(&icon_path).expect("Failed to set icon file");
     image.set_resource_directory(resources).expect("Failed to set resources");
     image.write_file(destination_path).expect("Failed to write exe file");
