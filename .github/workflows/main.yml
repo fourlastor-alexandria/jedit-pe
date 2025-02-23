@@ -18,9 +18,13 @@ jobs:
         run: |
           mkdir out
           mkdir tmp_build
+          rustup target add aarch64-pc-windows-msvc
           cargo build --target x86_64-pc-windows-msvc --release
           copy target/x86_64-pc-windows-msvc/release/editpe_java.dll tmp_build/editpe_java64.dll
           Compress-Archive -Path tmp_build/editpe_java64.dll -Destination out/editpe_java64.dll.zip
+          cargo build --target aarch64-pc-windows-msvc --release
+          copy target/aarch64-pc-windows-msvc/release/editpe_java.dll tmp_build/editpe_javaarm64.dll
+          Compress-Archive -Path tmp_build/editpe_javaarm64.dll -Destination out/editpe_javaarm64.dll.zip
       - name: Build MacOS (setup)
         if: matrix.os == 'macos-latest'
         run: |
