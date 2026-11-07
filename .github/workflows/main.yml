@@ -5,6 +5,9 @@ on:
   # Manual dispatch for testing
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -12,7 +15,7 @@ jobs:
       matrix:
         os: [ windows-latest, macos-latest, ubuntu-latest ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build Windows
         if: matrix.os == 'windows-latest'
         run: |
@@ -64,13 +67,25 @@ jobs:
           zip out/libeditpe_java64.so.zip ./libeditpe_java64.so
           zip out/libeditpe_javaarm64.so.zip ./libeditpe_javaarm64.so
       - name: Artifact upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: outputs-${{ matrix.os }}
           path: out
           retention-days: 30
+  # Publishes once every platform has built. gh creates the release as a draft until all files are
+  # uploaded, so a failed upload doesn't leave a partial release behind.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Download build outputs
+        run: gh run download "$GITHUB_RUN_ID" --dir out
       - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: out/*
+        run: gh release create "$GITHUB_REF_NAME" out/*/* --verify-tag --title "$GITHUB_REF_NAME" --notes ""
